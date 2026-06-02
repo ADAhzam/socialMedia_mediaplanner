@@ -16,4 +16,8 @@ function projectChannel({ channelBudget, channel, industry, geo, marginMultiplie
   return { channel, budget: channelBudget, cpc, ctr, cpm, clicks, impressions };
 }
 
-module.exports = { applyMargin, projectChannel };
+function toRange(value, { lowMult = 0.6, highMult = 1.5 } = {}) {
+  return { low: value * lowMult, high: value * highMult };
+}
+
+module.exports = { applyMargin, projectChannel, toRange };

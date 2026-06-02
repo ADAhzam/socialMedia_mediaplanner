@@ -43,3 +43,22 @@ test('higher margin reduces projected clicks; lower margin increases them', () =
   assert.ok(leaner.clicks > base.clicks);   // margin down -> more clicks
   assert.ok(Math.abs(fatter.cpc - 6.0) < 1e-9);
 });
+
+const { toRange } = require('../lib/engine');
+
+test('toRange uses default low 0.6 / high 1.5 multipliers', () => {
+  const r = toRange(1000);
+  assert.ok(Math.abs(r.low - 600) < 1e-9);
+  assert.ok(Math.abs(r.high - 1500) < 1e-9);
+});
+
+test('toRange accepts custom multipliers', () => {
+  const r = toRange(1000, { lowMult: 0.6, highMult: 1.45 });
+  assert.ok(Math.abs(r.low - 600) < 1e-9);
+  assert.ok(Math.abs(r.high - 1450) < 1e-9);
+});
+
+test('toRange low never exceeds high', () => {
+  const r = toRange(1000);
+  assert.ok(r.low <= r.high);
+});
