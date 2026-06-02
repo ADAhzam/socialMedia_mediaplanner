@@ -82,3 +82,25 @@ test('value below the band clamps to the low edge', () => {
   assert.ok(Math.abs(r.value - 9000) < 1e-9);
   assert.strictEqual(r.clamped, true);
 });
+
+const { applyOverrides } = require('../lib/engine');
+
+test('overrides replace matching fields and leave others intact', () => {
+  const projection = { channel: 'google_search', cpc: 3.0, clicks: 1000, impressions: 15384 };
+  const out = applyOverrides(projection, { cpc: 2.5, clicks: 1200 });
+  assert.strictEqual(out.cpc, 2.5);
+  assert.strictEqual(out.clicks, 1200);
+  assert.strictEqual(out.impressions, 15384);
+  assert.strictEqual(out.channel, 'google_search');
+});
+
+test('applyOverrides does not mutate the input', () => {
+  const projection = { cpc: 3.0 };
+  applyOverrides(projection, { cpc: 1.0 });
+  assert.strictEqual(projection.cpc, 3.0);
+});
+
+test('empty overrides return an equivalent object', () => {
+  const projection = { cpc: 3.0, clicks: 1000 };
+  assert.deepStrictEqual(applyOverrides(projection, {}), projection);
+});

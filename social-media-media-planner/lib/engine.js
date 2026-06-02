@@ -28,4 +28,8 @@ function applyBoundary(value, { anchor, tolerancePct }) {
   return { value, clamped: false };
 }
 
-module.exports = { applyMargin, projectChannel, toRange, applyBoundary };
+function applyOverrides(projection, overrides = {}) {
+  return { ...projection, ...overrides };
+}
+
+module.exports = { applyMargin, projectChannel, toRange, applyBoundary, applyOverrides };
