@@ -205,3 +205,13 @@ test('projectPlan applies per-channel overrides last', () => {
   const gs = projectPlan(plan).tiers[0].channels[0];
   assert.strictEqual(gs.cpc, 2.0);
 });
+
+const smmp = require('../lib');
+
+test('package index re-exports the public API', () => {
+  ['projectPlan', 'projectChannel', 'budgetFromHires', 'recommendTier',
+   'applyMargin', 'applyBoundary', 'applyOverrides', 'toRange',
+   'getBenchmark', 'validateHard', 'validateSoft'].forEach((fn) => {
+    assert.strictEqual(typeof smmp[fn], 'function', `${fn} should be exported from index`);
+  });
+});
