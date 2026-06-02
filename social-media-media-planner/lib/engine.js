@@ -20,4 +20,12 @@ function toRange(value, { lowMult = 0.6, highMult = 1.5 } = {}) {
   return { low: value * lowMult, high: value * highMult };
 }
 
-module.exports = { applyMargin, projectChannel, toRange };
+function applyBoundary(value, { anchor, tolerancePct }) {
+  const low = anchor * (1 - tolerancePct / 100);
+  const high = anchor * (1 + tolerancePct / 100);
+  if (value < low) return { value: low, clamped: true };
+  if (value > high) return { value: high, clamped: true };
+  return { value, clamped: false };
+}
+
+module.exports = { applyMargin, projectChannel, toRange, applyBoundary };

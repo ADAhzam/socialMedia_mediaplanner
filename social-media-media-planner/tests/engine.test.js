@@ -62,3 +62,23 @@ test('toRange low never exceeds high', () => {
   const r = toRange(1000);
   assert.ok(r.low <= r.high);
 });
+
+const { applyBoundary } = require('../lib/engine');
+
+test('value inside the band is unchanged', () => {
+  const r = applyBoundary(9800, { anchor: 10000, tolerancePct: 10 });
+  assert.strictEqual(r.value, 9800);
+  assert.strictEqual(r.clamped, false);
+});
+
+test('value above the band clamps to the high edge', () => {
+  const r = applyBoundary(12000, { anchor: 10000, tolerancePct: 10 });
+  assert.ok(Math.abs(r.value - 11000) < 1e-9);
+  assert.strictEqual(r.clamped, true);
+});
+
+test('value below the band clamps to the low edge', () => {
+  const r = applyBoundary(8000, { anchor: 10000, tolerancePct: 10 });
+  assert.ok(Math.abs(r.value - 9000) < 1e-9);
+  assert.strictEqual(r.clamped, true);
+});
