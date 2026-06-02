@@ -32,4 +32,13 @@ function applyOverrides(projection, overrides = {}) {
   return { ...projection, ...overrides };
 }
 
-module.exports = { applyMargin, projectChannel, toRange, applyBoundary, applyOverrides };
+function budgetFromHires({ hires, applyToHireRatio, targetCpa }) {
+  if (!(hires > 0) || !(applyToHireRatio > 0) || !(targetCpa > 0)) {
+    throw new Error('hires, applyToHireRatio, and targetCpa must all be positive');
+  }
+  const appsTarget = hires * applyToHireRatio;
+  const budget = appsTarget * targetCpa;
+  return { appsTarget, budget };
+}
+
+module.exports = { applyMargin, projectChannel, toRange, applyBoundary, applyOverrides, budgetFromHires };

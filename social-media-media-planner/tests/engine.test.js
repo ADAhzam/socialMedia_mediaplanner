@@ -104,3 +104,17 @@ test('empty overrides return an equivalent object', () => {
   const projection = { cpc: 3.0, clicks: 1000 };
   assert.deepStrictEqual(applyOverrides(projection, {}), projection);
 });
+
+const { budgetFromHires } = require('../lib/engine');
+
+test('computes apps target and budget from hires (BAYADA example)', () => {
+  const r = budgetFromHires({ hires: 8, applyToHireRatio: 50, targetCpa: 92.5 });
+  assert.strictEqual(r.appsTarget, 400);
+  assert.ok(Math.abs(r.budget - 37000) < 1e-6);
+});
+
+test('throws on non-positive inputs', () => {
+  assert.throws(() => budgetFromHires({ hires: 0, applyToHireRatio: 50, targetCpa: 92.5 }));
+  assert.throws(() => budgetFromHires({ hires: 8, applyToHireRatio: 0, targetCpa: 92.5 }));
+  assert.throws(() => budgetFromHires({ hires: 8, applyToHireRatio: 50, targetCpa: -1 }));
+});
