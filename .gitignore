@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+
+# Claude Code session/local
+.claude/
+
+# Node
+node_modules/
+
+# External reference artifacts (kept locally, not source)
+*.skill
