@@ -118,3 +118,21 @@ test('throws on non-positive inputs', () => {
   assert.throws(() => budgetFromHires({ hires: 8, applyToHireRatio: 0, targetCpa: 92.5 }));
   assert.throws(() => budgetFromHires({ hires: 8, applyToHireRatio: 50, targetCpa: -1 }));
 });
+
+const { recommendTier } = require('../lib/engine');
+
+test('recommends the tier nearest a target budget', () => {
+  const tiers = [{ budget: 5000 }, { budget: 9000 }, { budget: 14000 }];
+  assert.strictEqual(recommendTier(tiers, { targetBudget: 8000 }), 1);
+});
+
+test('falls back to the median tier when no target given', () => {
+  const tiers = [{ budget: 5000 }, { budget: 9000 }, { budget: 14000 }];
+  assert.strictEqual(recommendTier(tiers, {}), 1);
+});
+
+test('never recommends an out-of-range index', () => {
+  const tiers = [{ budget: 5000 }, { budget: 9000 }];
+  const idx = recommendTier(tiers, { targetBudget: 999999 });
+  assert.ok(idx >= 0 && idx < tiers.length);
+});

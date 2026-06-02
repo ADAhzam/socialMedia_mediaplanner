@@ -41,4 +41,20 @@ function budgetFromHires({ hires, applyToHireRatio, targetCpa }) {
   return { appsTarget, budget };
 }
 
-module.exports = { applyMargin, projectChannel, toRange, applyBoundary, applyOverrides, budgetFromHires };
+function recommendTier(tiers, { targetBudget } = {}) {
+  if (!Array.isArray(tiers) || tiers.length === 0) {
+    throw new Error('tiers must be a non-empty array');
+  }
+  if (typeof targetBudget === 'number') {
+    let best = 0;
+    let bestDist = Infinity;
+    tiers.forEach((t, i) => {
+      const d = Math.abs(t.budget - targetBudget);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    return best;
+  }
+  return Math.floor((tiers.length - 1) / 2);
+}
+
+module.exports = { applyMargin, projectChannel, toRange, applyBoundary, applyOverrides, budgetFromHires, recommendTier };
