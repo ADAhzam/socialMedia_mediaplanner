@@ -136,3 +136,72 @@ test('never recommends an out-of-range index', () => {
   const idx = recommendTier(tiers, { targetBudget: 999999 });
   assert.ok(idx >= 0 && idx < tiers.length);
 });
+
+const { projectPlan } = require('../lib/engine');
+
+const samplePlan = {
+  industry: 'general_recruitment',
+  geo: 'us',
+  marginMultiplier: 1.0,
+  targetBudget: 9000,
+  tiers: [
+    {
+      name: 'Tier 1', budget: 5000,
+      allocations: { google_search: 10, meta_feed_image: 50, meta_feed_video: 40 },
+    },
+    {
+      name: 'Tier 2', budget: 9000,
+      allocations: { google_search: 10, meta_feed_image: 50, meta_feed_video: 40 },
+    },
+  ],
+};
+
+test('projectPlan splits budget by allocation and totals clicks', () => {
+  const out = projectPlan(samplePlan);
+  const t1 = out.tiers[0];
+  const gs = t1.channels.find(c => c.channel === 'google_search');
+  // 10% of 5000 = 500 budget; 500 / 3.00 = 166.67 clicks
+  assert.ok(Math.abs(gs.budget - 500) < 1e-6);
+  assert.ok(Math.abs(gs.clicks - 166.6667) < 1e-3);
+  // totals = sum of channel clicks
+  const summed = t1.channels.reduce((s, c) => s + c.clicks, 0);
+  assert.ok(Math.abs(t1.totals.clicks - summed) < 1e-6);
+  // each channel carries ranges
+  assert.ok(gs.clicksRange.low <= gs.clicksRange.high);
+  assert.ok(gs.impressionsRange.low <= gs.impressionsRange.high);
+});
+
+test('projectPlan marks exactly one recommended tier (nearest targetBudget)', () => {
+  const out = projectPlan(samplePlan);
+  const flagged = out.tiers.filter(t => t.recommended);
+  assert.strictEqual(flagged.length, 1);
+  assert.strictEqual(out.tiers[1].recommended, true); // 9000 == targetBudget
+});
+
+test('projectPlan applies a per-channel boundary clamp on clicks', () => {
+  const plan = {
+    industry: 'general_recruitment', geo: 'us', marginMultiplier: 1.0,
+    tiers: [{
+      name: 'T', budget: 5000,
+      allocations: { google_search: 100 },
+      boundaries: { google_search: { metric: 'clicks', anchor: 1000, tolerancePct: 10 } },
+    }],
+  };
+  const gs = projectPlan(plan).tiers[0].channels[0];
+  // raw clicks = 5000/3 = 1666.67 -> clamped to 1100 (1000 +10%)
+  assert.ok(Math.abs(gs.clicks - 1100) < 1e-6);
+  assert.strictEqual(gs.clamped, true);
+});
+
+test('projectPlan applies per-channel overrides last', () => {
+  const plan = {
+    industry: 'general_recruitment', geo: 'us', marginMultiplier: 1.0,
+    tiers: [{
+      name: 'T', budget: 5000,
+      allocations: { google_search: 100 },
+      overrides: { google_search: { cpc: 2.0 } },
+    }],
+  };
+  const gs = projectPlan(plan).tiers[0].channels[0];
+  assert.strictEqual(gs.cpc, 2.0);
+});

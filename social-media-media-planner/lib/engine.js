@@ -57,4 +57,45 @@ function recommendTier(tiers, { targetBudget } = {}) {
   return Math.floor((tiers.length - 1) / 2);
 }
 
-module.exports = { applyMargin, projectChannel, toRange, applyBoundary, applyOverrides, budgetFromHires, recommendTier };
+function projectPlan(plan) {
+  const { industry, geo, marginMultiplier = 1.0, targetBudget, tiers } = plan;
+  const projectedTiers = tiers.map((tier) => {
+    const channels = Object.entries(tier.allocations).map(([channel, pct]) => {
+      const channelBudget = tier.budget * (pct / 100);
+      let p = projectChannel({ channelBudget, channel, industry, geo, marginMultiplier });
+
+      // per-channel boundary on a chosen metric
+      const b = tier.boundaries && tier.boundaries[channel];
+      let clamped = false;
+      if (b) {
+        const r = applyBoundary(p[b.metric], { anchor: b.anchor, tolerancePct: b.tolerancePct });
+        p = { ...p, [b.metric]: r.value };
+        clamped = r.clamped;
+      }
+
+      // per-channel overrides (applied last)
+      const o = tier.overrides && tier.overrides[channel];
+      if (o) p = applyOverrides(p, o);
+
+      return {
+        ...p,
+        allocationPct: pct,
+        clamped,
+        clicksRange: toRange(p.clicks, { lowMult: 0.6, highMult: 1.45 }),
+        impressionsRange: toRange(p.impressions, { lowMult: 0.6, highMult: 1.5 }),
+      };
+    });
+
+    const totals = {
+      clicks: channels.reduce((s, c) => s + c.clicks, 0),
+      impressions: channels.reduce((s, c) => s + c.impressions, 0),
+    };
+    return { name: tier.name, budget: tier.budget, channels, totals, recommended: false };
+  });
+
+  const recIdx = recommendTier(projectedTiers, { targetBudget });
+  projectedTiers[recIdx].recommended = true;
+  return { tiers: projectedTiers };
+}
+
+module.exports = { applyMargin, projectChannel, toRange, applyBoundary, applyOverrides, budgetFromHires, recommendTier, projectPlan };
