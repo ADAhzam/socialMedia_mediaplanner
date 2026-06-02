@@ -1,0 +1,9 @@
+{
+  "name": "smmp-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Projection engine for the Social Media Media Planner skill",
+  "scripts": {
+    "test": "node --test '../tests/*.test.js'"
+  }
+}
