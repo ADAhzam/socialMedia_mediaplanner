@@ -70,6 +70,7 @@ function projectPlan(plan) {
       if (b) {
         const r = applyBoundary(p[b.metric], { anchor: b.anchor, tolerancePct: b.tolerancePct });
         p = { ...p, [b.metric]: r.value };
+        p = reconcileRow(p, b.metric);
         clamped = r.clamped;
       }
 
@@ -98,4 +99,28 @@ function projectPlan(plan) {
   return { tiers: projectedTiers };
 }
 
-module.exports = { applyMargin, projectChannel, toRange, applyBoundary, applyOverrides, budgetFromHires, recommendTier, projectPlan };
+// After a metric is steered (boundary clamp), recompute dependent metrics so the
+// row stays internally consistent. Holds budget and ctr fixed; derives cpc from
+// the driver metric. driverField in {'clicks','impressions','cpc','cpm','budget','ctr'}.
+function reconcileRow(row, driverField) {
+  const budget = row.budget;
+  const ctr = row.ctr;
+  let cpc;
+  if (driverField === 'clicks') {
+    cpc = budget / row.clicks;
+  } else if (driverField === 'impressions') {
+    const clicks = row.impressions * ctr / 100;
+    cpc = budget / clicks;
+  } else if (driverField === 'cpm') {
+    cpc = row.cpm / ((ctr / 100) * 1000);
+  } else {
+    // 'cpc', 'budget', 'ctr', or anything else: keep existing cpc
+    cpc = row.cpc;
+  }
+  const clicks = budget / cpc;
+  const impressions = clicks * 100 / ctr;
+  const cpm = cpc * (ctr / 100) * 1000;
+  return { ...row, budget, ctr, cpc, clicks, impressions, cpm };
+}
+
+module.exports = { applyMargin, projectChannel, toRange, applyBoundary, applyOverrides, budgetFromHires, recommendTier, projectPlan, reconcileRow };

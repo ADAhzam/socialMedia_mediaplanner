@@ -215,3 +215,62 @@ test('package index re-exports the public API', () => {
     assert.strictEqual(typeof smmp[fn], 'function', `${fn} should be exported from index`);
   });
 });
+
+const { reconcileRow } = require('../lib/engine');
+
+test('reconcileRow with driver "clicks" recomputes cpc/impressions/cpm consistently (budget & ctr fixed)', () => {
+  const row = { channel: 'google_search', budget: 5000, cpc: 3.0, ctr: 6.5, cpm: 195, clicks: 1666.6667, impressions: 25641.0 };
+  const out = reconcileRow({ ...row, clicks: 1100 }, 'clicks');
+  // budget & ctr unchanged
+  assert.strictEqual(out.budget, 5000);
+  assert.strictEqual(out.ctr, 6.5);
+  // cpc derived from budget/clicks = 5000/1100
+  assert.ok(Math.abs(out.cpc - (5000 / 1100)) < 1e-9);
+  // clicks consistent with budget/cpc
+  assert.ok(Math.abs(out.clicks - 1100) < 1e-6);
+  // impressions consistent with clicks*100/ctr
+  assert.ok(Math.abs(out.impressions - (1100 * 100 / 6.5)) < 1e-6);
+  // cpm consistent with cpc*(ctr/100)*1000
+  assert.ok(Math.abs(out.cpm - (out.cpc * (6.5 / 100) * 1000)) < 1e-9);
+});
+
+test('reconcileRow with driver "cpc" recomputes clicks/impressions/cpm', () => {
+  const row = { budget: 5000, cpc: 2.0, ctr: 6.5, cpm: 0, clicks: 0, impressions: 0 };
+  const out = reconcileRow(row, 'cpc');
+  assert.ok(Math.abs(out.clicks - (5000 / 2.0)) < 1e-6);
+  assert.ok(Math.abs(out.impressions - ((5000 / 2.0) * 100 / 6.5)) < 1e-6);
+});
+
+test('reconcileRow with driver "budget" keeps cpc, recomputes clicks/impressions', () => {
+  const row = { budget: 1000, cpc: 2.0, ctr: 5.0, cpm: 0, clicks: 0, impressions: 0 };
+  const out = reconcileRow(row, 'budget');
+  assert.strictEqual(out.cpc, 2.0);
+  assert.ok(Math.abs(out.clicks - 500) < 1e-9);          // 1000/2
+  assert.ok(Math.abs(out.impressions - (500 * 100 / 5.0)) < 1e-9);
+});
+
+test('reconcileRow does not mutate input', () => {
+  const row = { budget: 5000, cpc: 3.0, ctr: 6.5, cpm: 195, clicks: 100, impressions: 100 };
+  reconcileRow(row, 'clicks');
+  assert.strictEqual(row.clicks, 100);
+});
+
+test('projectPlan: a clicks boundary clamp yields an internally consistent row', () => {
+  const plan = {
+    industry: 'general_recruitment', geo: 'us', marginMultiplier: 1.0,
+    tiers: [{
+      name: 'T', budget: 5000,
+      allocations: { google_search: 100 },
+      boundaries: { google_search: { metric: 'clicks', anchor: 1000, tolerancePct: 10 } },
+    }],
+  };
+  const gs = projectPlan(plan).tiers[0].channels[0];
+  assert.ok(Math.abs(gs.clicks - 1100) < 1e-6);          // still clamped
+  assert.strictEqual(gs.clamped, true);
+  // now consistent: impressions == clicks*100/ctr, cpc == budget/clicks
+  assert.ok(Math.abs(gs.impressions - (gs.clicks * 100 / gs.ctr)) < 1e-6);
+  assert.ok(Math.abs(gs.cpc - (gs.budget / gs.clicks)) < 1e-6);
+  // ranges rebuilt from the reconciled values
+  assert.ok(Math.abs(gs.clicksRange.high - gs.clicks * 1.45) < 1e-6);
+  assert.ok(Math.abs(gs.impressionsRange.high - gs.impressions * 1.5) < 1e-6);
+});
