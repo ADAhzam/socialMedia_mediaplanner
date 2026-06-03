@@ -243,3 +243,22 @@ incorporate optional AM-reviewed modules from Plan 3 (Targeting, Keywords, Insig
 
 Both depth levels are toggled via a `depth` field on the plan object (not yet in the schema)
 and will render through the same `generate()` pipeline with an expanded `renderDeck()`.
+
+---
+
+## Visual QA — 2026-06-03
+
+**PASS.** Three decks generated (joveo, cobranded, whitelabel) and inspected via PPTX XML analysis (LibreOffice/pdftoppm not available on this machine; cover thumbnails also reviewed visually via qlmanage).
+
+Checklist results:
+
+- **No element overflow**: All shape/text x+w values stay within 10" slide boundary across all 9 slides. Bar value-label cap (`Math.min(..., 8.0)`) confirmed effective.
+- **No text above footer band**: All content elements confirmed above y=5.3"; footer band at y=5.35".
+- **RECOMMENDED badge**: Exactly one occurrence, on Tier 2 ($9,000 = targetBudget). Tiers 1 and 3 have none.
+- **Footers on dark content slides**: budgetOptions (slide 3), allocation (slide 5), and performance (slide 6) all carry the footer text. Cover (slide 1) and close (slide 9) are footer-free.
+- **Channel overflow guards**: Tier 2 (3 channels) and Tier 3 (4 channels) both render within the 6-channel cap; no overflow.
+- **Whitelabel brand clean**: Zero "joveo" or "yoke" strings anywhere in slide XML. Footer reads "Acme Care | Media Plan | June 2026 | Confidential".
+- **Cobranded accent color**: `00A1E0` present across content slides (header strip, accent bar, budget values).
+- **Numbers sensible**: CPC $1.65; click ranges all low < high (e.g. 3,280–7,927; 1,822–4,404); impression ranges in K/M format.
+
+No fixes were required after initial application of the three render patches.
