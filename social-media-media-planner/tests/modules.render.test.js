@@ -46,3 +46,15 @@ test('partial: only targeting + active/passive -> 11 slides', async () => {
   const r = await renderDeck(dm, path.join(__dirname, '..', 'out', 'mod-partial.pptx'));
   assert.strictEqual(r.slideCount, 11);
 });
+
+const { generate } = require('../render/generate');
+
+test('generate with module toggles builds targeting+keywords and adds slides', async () => {
+  const p = basePlan();
+  p.modules = { targeting: true, keywords: true };
+  p.competitors = ['Bupa'];
+  const out = path.join(__dirname, '..', 'out', 'gen-modules.pptx');
+  const r = await generate(p, out);
+  assert.strictEqual(r.slideCount, 11); // 9 + targeting + keywords
+  assert.ok(fs.existsSync(out));
+});

@@ -4,15 +4,26 @@ const { projectPlan } = require('../lib');
 const { prepareForRender } = require('./gate');
 const { buildDeckModel } = require('./viewmodel');
 const { renderDeck } = require('./render');
+const { buildTargeting } = require('./modules/targeting');
+const { buildKeywords } = require('./modules/keywords');
 
-// Full pipeline: plan -> projection -> validation gate -> view model -> rendered deck.
-// Throws if hard validation fails (no file written). Returns { outPath, slideCount, warnings }.
+// Build toggled modules (targeting/keywords) from the brief if requested and not
+// already supplied. Insights are supplied by the skill (researched), never built here.
+function withModules(plan) {
+  const mods = plan.modules || {};
+  const next = { ...plan };
+  if (mods.targeting && !next.targeting) next.targeting = buildTargeting(plan);
+  if (mods.keywords && !next.keywords) next.keywords = buildKeywords(plan);
+  return next;
+}
+
 async function generate(plan, outPath) {
-  const projected = projectPlan(plan);
-  const { warnings } = prepareForRender(plan, projected); // throws on hard errors
-  const deckModel = buildDeckModel(plan, projected);
+  const enriched = withModules(plan);
+  const projected = projectPlan(enriched);
+  const { warnings } = prepareForRender(enriched, projected); // throws on hard errors
+  const deckModel = buildDeckModel(enriched, projected);
   const { slideCount } = await renderDeck(deckModel, outPath);
   return { outPath, slideCount, warnings };
 }
 
-module.exports = { generate };
+module.exports = { generate, withModules };

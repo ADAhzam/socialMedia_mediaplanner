@@ -31,3 +31,10 @@ test('soft warnings are surfaced, not thrown', () => {
   const res = prepareForRender(plan, projectPlan(plan));
   assert.ok(res.warnings.some(w => /below \$300/i.test(w)));
 });
+
+test('insight without sources surfaces a soft warning via the gate', () => {
+  const plan = goodPlan();
+  plan.insights = { competitive: { competitors: [{ name: 'Bupa' }], sources: [] } };
+  const res = prepareForRender(plan, projectPlan(plan));
+  assert.ok(res.warnings.some(w => /competitive/i.test(w) && /citation|source/i.test(w)));
+});
