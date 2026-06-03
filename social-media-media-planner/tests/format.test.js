@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { fmtMoney, fmtK, fmtClicks, fmtRangeK, fmtRangeClicks, fmtPct } = require('../render/format');
+const { fmtMoney, fmtK, fmtClicks, fmtRangeK, fmtRangeClicks, fmtPct, fmtCpc } = require('../render/format');
 
 test('fmtMoney formats whole dollars with thousands separators', () => {
   assert.strictEqual(fmtMoney(5000), '$5,000');
@@ -31,4 +31,9 @@ test('fmtRangeClicks joins click counts with an en-dash', () => {
 test('fmtPct shows one decimal place', () => {
   assert.strictEqual(fmtPct(1.4), '1.4%');
   assert.strictEqual(fmtPct(1.45), '1.5%');
+});
+
+test('fmtCpc shows two decimals', () => {
+  assert.strictEqual(fmtCpc(1.65), '$1.65');
+  assert.strictEqual(fmtCpc(2.5), '$2.50');
 });

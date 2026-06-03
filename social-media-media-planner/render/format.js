@@ -28,4 +28,8 @@ function fmtPct(n) {
   return (Math.round(n * 10) / 10).toFixed(1) + '%';
 }
 
-module.exports = { fmtMoney, fmtK, fmtClicks, fmtRangeK, fmtRangeClicks, fmtPct, DASH };
+function fmtCpc(n) {
+  return '$' + (Math.round(n * 100) / 100).toFixed(2);
+}
+
+module.exports = { fmtMoney, fmtK, fmtClicks, fmtRangeK, fmtRangeClicks, fmtPct, fmtCpc, DASH };

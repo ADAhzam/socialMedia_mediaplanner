@@ -1,7 +1,7 @@
 'use strict';
 
 const { resolveBrand } = require('./brand');
-const { fmtMoney, fmtRangeClicks, fmtRangeK } = require('./format');
+const { fmtMoney, fmtRangeClicks, fmtRangeK, fmtCpc } = require('./format');
 
 const CHANNEL_LABELS = {
   google_search: 'Google Search',
@@ -41,7 +41,7 @@ function buildDeckModel(plan, projected) {
       totals: {
         clicksRangeLabel: fmtRangeClicks(totalClicksLow, totalClicksHigh),
         impressionsRangeLabel: fmtRangeK(totalImprLow, totalImprHigh),
-        cpcLabel: fmtMoney(blendedCpc),
+        cpcLabel: fmtCpc(blendedCpc),
       },
     };
   });
