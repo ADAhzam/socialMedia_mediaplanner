@@ -39,3 +39,21 @@ test('renderDeck works in whitelabel mode without throwing', async () => {
   assert.strictEqual(result.slideCount, 9);
   assert.ok(fs.existsSync(out));
 });
+
+const { generate } = require('../render/generate');
+
+test('generate runs engine -> gate -> viewmodel -> render and returns warnings', async () => {
+  const p = plan('cobranded');
+  p.client.accentColor = '00A1E0';
+  const out = path.join(__dirname, '..', 'out', 'generate-cobranded.pptx');
+  const res = await generate(p, out);
+  assert.ok(fs.existsSync(res.outPath));
+  assert.ok(Array.isArray(res.warnings));
+  assert.strictEqual(res.slideCount, 9);
+});
+
+test('generate throws (blocks) on a hard-invalid plan', async () => {
+  const p = plan('joveo');
+  p.tiers[0].allocations = { google_search: 10, meta_feed_image: 50, meta_feed_video: 30 }; // 90
+  await assert.rejects(() => generate(p, path.join(__dirname, '..', 'out', 'should-not-exist.pptx')), /hard validation/i);
+});
