@@ -144,7 +144,7 @@ AM review step, before final `generate()`.
 
 The renderer (`keywordSlide` in `render/render.js`) shows up to 8 clusters in a table
 with four columns: Role, Type, Match, and Example terms (up to 3 terms per cell,
-joined with ` · `). The negative list appears as an italic footer line below the table,
+joined with `; `). The negative list appears as an italic footer line below the table,
 showing term names joined with ` · `.
 
 If there are more than 8 clusters (e.g. 4+ roles × 3 cluster types = 12+), only the

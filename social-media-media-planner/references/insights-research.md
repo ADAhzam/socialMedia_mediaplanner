@@ -237,8 +237,8 @@ Field names must match exactly — the renderer reads them without transformatio
 - `activePct` — large number (40pt bold, navy) in the right panel.
 - `note` — italic callout centred below both panels. Omit (empty string or absent) if
   no strategic note is appropriate.
-- `sources` — not rendered on this slide (validation only). Citations are recorded for
-  the AM approval record.
+- `sources` — rendered as a small "Sources: …" line at the bottom of the slide (and used
+  for validation). Citations are also recorded for the AM approval record.
 
 ### `competitive` → `competitiveSlide`
 
