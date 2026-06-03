@@ -17,7 +17,7 @@ function coverSlide(pres, dm) {
   }
   s.addShape(pres.shapes.RECTANGLE, { x: 0.45, y: 1.1, w: 9.1, h: 0.02, fill: { color: p.ACCENT }, line: { color: p.ACCENT } });
   s.addText([{ text: dm.client, options: { color: p.WHITE } }], { x: 0.45, y: 1.3, w: 8.5, h: 0.9, fontSize: 42, bold: true, fontFace: 'Calibri' });
-  s.addText(`${dm.objectiveLabel}`, { x: 0.45, y: 2.3, w: 8, h: 0.45, fontSize: 16, color: p.WHITE, fontFace: 'Calibri' });
+  s.addText(dm.archetype === 'jobad' ? 'Recruitment Media Plan' : 'Employer Branding Media Plan', { x: 0.45, y: 2.3, w: 8, h: 0.45, fontSize: 16, color: p.WHITE, fontFace: 'Calibri' });
   s.addText(`${dm.objectiveLabel} · ${dm.geoLabel}`, { x: 0.45, y: 2.85, w: 8.5, h: 0.35, fontSize: 12, color: p.SUBTLE, fontFace: 'Calibri' });
   return s;
 }
@@ -173,7 +173,8 @@ const MEASUREMENT_ROWS = [
 async function renderDeck(deckModel, outPath) {
   const pres = new pptxgen();
   pres.layout = 'LAYOUT_16x9';
-  pres.author = 'Joveo';
+  pres.author = deckModel.brand.showJoveo ? 'Joveo' : deckModel.client;
+  pres.company = deckModel.brand.showJoveo ? 'Joveo' : deckModel.client;
   pres.title = `${deckModel.client} Media Plan`;
 
   coverSlide(pres, deckModel);

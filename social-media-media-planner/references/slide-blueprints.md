@@ -65,7 +65,7 @@ Column 0: x=0.45; column 1: x=5.05. Row spacing: 0.62" starting at y=2.30.
 ## Slide 3 — Budget Options (dark)
 
 **Background:** Full-bleed NAVY rectangle.
-**Footer:** None (dark slide).
+**Footer:** Present — added explicitly via `addFooter()` after `darkSlide()` returns.
 **Title:** "Budget Options", WHITE, 30pt bold, Calibri, at (0.45, 0.20, 8, 0.60).
 
 Up to 3 tier cards are rendered side by side. X anchor positions: [0.30, 3.47, 6.63].
@@ -111,8 +111,7 @@ starting at x=0.35, y=1.10, with column spacing 3.10" and row spacing 1.90".
 ## Slide 5 — Budget Allocation (dark)
 
 **Background:** Full-bleed NAVY rectangle.
-**Footer:** None (dark slide). Note: a comment in `allocationSlide()` marks a potential footer
-addition for design-parity review; behaviour is being confirmed in visual QA.
+**Footer:** Present — added explicitly via `addFooter()` after `darkSlide()` returns.
 **Title:** "Budget Allocation", WHITE, 28pt bold, at (0.45, 0.20, 8, 0.60).
 **Subtitle:** "`rec.budgetLabel` / month · `rec.name`", SUBTLE, 11pt, at (0.45, 0.78, 8, 0.30).
 
@@ -132,7 +131,7 @@ with 0.62" row spacing. Bar colours cycle through: [ACCENT, BLUE, MGRAY, GREEN, 
 ## Slide 6 — Projected Performance (dark)
 
 **Background:** Full-bleed NAVY rectangle.
-**Footer:** None (dark slide).
+**Footer:** Present — added explicitly via `addFooter()` after `darkSlide()` returns.
 **Title:** "Projected Performance", WHITE, 28pt bold, at (0.45, 0.15, 9, 0.55).
 **Subtitle:** "What `rec.budgetLabel` / month delivers", SUBTLE, 11pt, at (0.45, 0.70, 9, 0.30).
 
@@ -209,21 +208,19 @@ Per step: numbered square (0.42 × 0.42, ACCENT fill) at (0.45, y); step heading
 
 ## Footer rule (summary)
 
+Footers appear on slides 2–8 (all content slides, including dark ones); only the cover (1) and close (9) are footer-free.
+
 | Slide | Background | Footer |
 |---|---|---|
 | 1 Cover | Dark (NAVY) | None |
-| 2 Opportunity | Light (LGRAY) | Yes |
-| 3 Budget Options | Dark (NAVY) | None |
-| 4 Campaign Structure | Light (LGRAY) | Yes |
-| 5 Budget Allocation | Dark (NAVY) | None (see note) |
-| 6 Projected Performance | Dark (NAVY) | None |
-| 7 Measurement Framework | Light (LGRAY) | Yes |
-| 8 Next Steps | Light (LGRAY) | Yes |
+| 2 Opportunity | Light (LGRAY) | Yes (via `contentSlide()`) |
+| 3 Budget Options | Dark (NAVY) | Yes (explicit `addFooter()` call) |
+| 4 Campaign Structure | Light (LGRAY) | Yes (via `contentSlide()`) |
+| 5 Budget Allocation | Dark (NAVY) | Yes (explicit `addFooter()` call) |
+| 6 Projected Performance | Dark (NAVY) | Yes (explicit `addFooter()` call) |
+| 7 Measurement Framework | Light (LGRAY) | Yes (via `contentSlide()`) |
+| 8 Next Steps | Light (LGRAY) | Yes (via `contentSlide()`) |
 | 9 Close | Dark (NAVY) | None |
-
-Note on dark content slides (5, 6): `allocationSlide()` contains a comment noting the footer
-was not added via `darkSlide()` (which produces no footer by design). Whether a footer should
-appear on these dark content slides is being confirmed in the visual QA pass.
 
 ---
 

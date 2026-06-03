@@ -57,3 +57,14 @@ test('generate throws (blocks) on a hard-invalid plan', async () => {
   p.tiers[0].allocations = { google_search: 10, meta_feed_image: 50, meta_feed_video: 30 }; // 90
   await assert.rejects(() => generate(p, path.join(__dirname, '..', 'out', 'should-not-exist.pptx')), /hard validation/i);
 });
+
+const { execSync } = require('node:child_process');
+
+test('whitelabel deck leaks no "Joveo"/"yoke" anywhere in the archive (incl. metadata)', async () => {
+  const p = plan('whitelabel');
+  const out = path.join(__dirname, '..', 'out', 'leak-check.pptx');
+  await generate(p, out);
+  // unzip -p decompresses ALL archive members (incl. docProps/core.xml) to stdout
+  const dump = execSync(`unzip -p "${out}"`, { encoding: 'latin1', maxBuffer: 64 * 1024 * 1024 });
+  assert.ok(!/joveo|yoke/i.test(dump), 'white-label archive must contain no joveo/yoke string');
+});

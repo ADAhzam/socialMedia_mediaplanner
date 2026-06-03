@@ -266,7 +266,7 @@ run through the visual QA checklist in `references/slide-blueprints.md`:
 - No overlapping text blocks (especially on stat cards and budget bars).
 - All budget bars end before the right edge of the slide.
 - Exactly one tier carries the "★ RECOMMENDED" badge.
-- Footer present on light content slides (2, 4, 7, 8); absent on dark slides (1, 3, 5, 6, 9).
+- Footer present on slides 2–8 (including dark content slides 3, 5, 6); absent on cover (1) and close (9) only.
 - White-label deck contains no "Joveo" or "yoke" string anywhere.
 - Cobranded deck shows client accent colour throughout and client logo in the top-right of the cover.
 - Numbers are plausible (click ranges low < high; CPC between $0.40 and $9.00).

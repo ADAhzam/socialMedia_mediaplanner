@@ -192,18 +192,17 @@ overflow the slide boundary.
 | Slide type | Function used | Footer |
 |---|---|---|
 | Light content slide | `contentSlide()` | Automatically added by `addFooter()` — do not add again |
-| Dark slide | `darkSlide()` | Not added — dark slides have no footer by design |
+| Dark slide | `darkSlide()` | Not added by `darkSlide()` itself — caller must add explicitly where needed |
 
-**Content slides (2, 4, 7, 8)** receive a footer automatically from `contentSlide()`.
+**Footers appear on slides 2–8** (all content slides). Only the cover (1) and close (9) are footer-free.
 
-**Dark slides (1, 3, 9)** — Cover, Budget Options, Close — have no footer by design.
+**Light content slides (2, 4, 7, 8)** receive a footer automatically via `contentSlide()`.
 
-**Dark content slides (5, 6)** — Budget Allocation and Projected Performance — are built on
-`darkSlide()` and currently carry no footer. A comment in `allocationSlide()` marks this as
-a point for visual QA review (whether a footer should appear on these dark content slides).
-If a footer is needed, call `addFooter(pres, s, dm.brand.footerText, p)` explicitly after
-`darkSlide()` returns — but note the white footer band will be visible against the NAVY
-background, which may not match the intended aesthetic.
+**Dark content slides (3, 5, 6)** — Budget Options, Budget Allocation, and Projected Performance — are
+built on `darkSlide()` and require an explicit `addFooter(pres, s, dm.brand.footerText, p)` call
+after `darkSlide()` returns. This is the current behaviour in `render.js`.
+
+**Cover (slide 1) and Close (slide 9)** are dark slides with no footer.
 
 ### Table-Height Guidance
 
