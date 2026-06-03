@@ -50,9 +50,10 @@ function statCard(pres, slide, x, y, w, h, bigText, labelText, palette, bigColor
 // Horizontal budget bar (label | bar | value). pct is 0..1. barMaxW caps width to avoid overflow.
 function budgetBarRow(pres, slide, x, y, label, valueLabel, pct, color, palette, rowH = 0.42, barMaxW = 4.6) {
   const barW = Math.max(barMaxW * pct, 0.05);
+  const valX = Math.min(x + 3.1 + barW + 0.1, 8.0);
   slide.addText(label, { x, y, w: 3.0, h: rowH, fontSize: 10, color: palette.WHITE, fontFace: 'Calibri', valign: 'middle' });
   slide.addShape(pres.shapes.RECTANGLE, { x: x + 3.1, y: y + 0.05, w: barW, h: rowH - 0.1, fill: { color }, line: { color } });
-  slide.addText(valueLabel, { x: x + 3.1 + barW + 0.1, y, w: 1.6, h: rowH, fontSize: 10, bold: true, color: palette.WHITE, fontFace: 'Calibri', valign: 'middle' });
+  slide.addText(valueLabel, { x: valX, y, w: 1.6, h: rowH, fontSize: 10, bold: true, color: palette.WHITE, fontFace: 'Calibri', valign: 'middle' });
 }
 
 module.exports = { makeShadow, addFooter, contentSlide, darkSlide, statCard, budgetBarRow };

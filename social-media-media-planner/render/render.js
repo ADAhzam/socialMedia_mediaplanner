@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const pptxgen = require('pptxgenjs');
-const { contentSlide, darkSlide, statCard, budgetBarRow, makeShadow } = require('./render-helpers');
+const { contentSlide, darkSlide, statCard, budgetBarRow, makeShadow, addFooter } = require('./render-helpers');
 
 function coverSlide(pres, dm) {
   const p = dm.brand.palette;
@@ -64,6 +64,7 @@ function budgetOptionsSlide(pres, dm) {
     s.addText(t.totals.clicksRangeLabel + ' clicks / mo', { x: x + 0.15, y: 4.07, w: 2.6, h: 0.25, fontSize: 10, bold: true, color: p.NAVY, fontFace: 'Calibri' });
     s.addText(t.totals.impressionsRangeLabel + ' impr / mo', { x: x + 0.15, y: 4.32, w: 2.6, h: 0.25, fontSize: 9, color: p.DGRAY, fontFace: 'Calibri' });
   });
+  addFooter(pres, s, dm.brand.footerText, p);
   return s;
 }
 
@@ -72,7 +73,7 @@ function structureSlide(pres, dm) {
   const s = contentSlide(pres, dm, 'Campaign Structure');
   s.addText('A channel-led approach across the funnel', { x: 0.25, y: 0.62, w: 9, h: 0.3, fontSize: 11, color: p.DGRAY, fontFace: 'Calibri' });
   const rec = dm.tiers.find(t => t.recommended) || dm.tiers[0];
-  rec.channels.forEach((c, i) => {
+  rec.channels.slice(0, 6).forEach((c, i) => {
     const x = 0.35 + (i % 3) * 3.1, y = 1.1 + Math.floor(i / 3) * 1.9;
     s.addShape(pres.shapes.RECTANGLE, { x, y, w: 2.95, h: 1.7, fill: { color: p.WHITE }, line: { color: p.NAVY, width: 0.7 }, shadow: makeShadow() });
     s.addShape(pres.shapes.RECTANGLE, { x, y, w: 2.95, h: 0.5, fill: { color: i === 0 ? p.NAVY : i === 1 ? p.ACCENT : p.BLUE }, line: { color: p.MGRAY } });
@@ -90,10 +91,10 @@ function allocationSlide(pres, dm) {
   s.addText('Budget Allocation', { x: 0.45, y: 0.2, w: 8, h: 0.6, fontSize: 28, bold: true, color: p.WHITE, fontFace: 'Calibri' });
   s.addText(`${rec.budgetLabel} / month · ${rec.name}`, { x: 0.45, y: 0.78, w: 8, h: 0.3, fontSize: 11, color: p.SUBTLE, fontFace: 'Calibri' });
   const colors = [p.ACCENT, p.BLUE, p.MGRAY, p.GREEN, p.SUBTLE];
-  rec.channels.forEach((c, i) => {
+  rec.channels.slice(0, 6).forEach((c, i) => {
     budgetBarRow(pres, s, 0.45, 1.3 + i * 0.62, c.label, c.budgetLabel, c.pct, colors[i % colors.length], p);
   });
-  // Footer present via... darkSlide has no footer; add it explicitly for parity:
+  addFooter(pres, s, dm.brand.footerText, p);
   return s;
 }
 
@@ -113,6 +114,7 @@ function performanceSlide(pres, dm) {
     const x = 0.45 + i * 2.32;
     statCard(pres, s, x, 1.1, 2.15, 1.3, c.big, c.label, p, c.color, c.bg);
   });
+  addFooter(pres, s, dm.brand.footerText, p);
   return s;
 }
 
