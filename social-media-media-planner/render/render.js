@@ -163,6 +163,98 @@ function closeSlide(pres, dm) {
   return s;
 }
 
+function targetingSlide(pres, dm) {
+  const p = dm.brand.palette;
+  const t = dm.modules.targeting;
+  const s = contentSlide(pres, dm, 'Audience Targeting Strategy');
+  // Meta panel (left)
+  s.addText('META — Special Ad Category (Recruitment)', { x: 0.45, y: 0.8, w: 4.5, h: 0.28, fontSize: 11, bold: true, color: p.NAVY, fontFace: 'Calibri' });
+  const metaLines = [
+    `Location: ${t.meta.location}`,
+    t.meta.locked,
+    `Function: ${(t.meta.interestFunction || []).join(', ')}`,
+    `Industry: ${(t.meta.interestIndustry || []).join(', ')}`,
+    `Career intent: ${(t.meta.careerIntent || []).join(', ')}`,
+    `Retargeting: ${(t.meta.retargeting || []).join('; ')}`,
+  ];
+  s.addText(metaLines.map(l => '• ' + l).join('\n'), { x: 0.45, y: 1.1, w: 4.5, h: 2.6, fontSize: 9.5, color: p.DGRAY, fontFace: 'Calibri', valign: 'top' });
+  s.addText(t.meta.note, { x: 0.45, y: 3.7, w: 4.5, h: 0.9, fontSize: 9, italic: true, color: p.ACCENT, fontFace: 'Calibri', valign: 'top' });
+  // Google panel (right)
+  s.addText('GOOGLE — Intent & Conquest', { x: 5.1, y: 0.8, w: 4.45, h: 0.28, fontSize: 11, bold: true, color: p.NAVY, fontFace: 'Calibri' });
+  const gLines = [
+    `In-market: ${(t.google.inMarketAudiences || []).join(', ')}`,
+    `Custom-intent URLs: ${(t.google.customIntentUrls || []).join(', ')}`,
+    `Geo: ${t.google.geo}`,
+    `Negative geo: ${(t.google.negativeGeo || []).join(', ') || 'none'}`,
+    t.google.competitorConquest,
+  ];
+  s.addText(gLines.map(l => '• ' + l).join('\n'), { x: 5.1, y: 1.1, w: 4.45, h: 3.0, fontSize: 9.5, color: p.DGRAY, fontFace: 'Calibri', valign: 'top' });
+  return s;
+}
+
+function keywordSlide(pres, dm) {
+  const p = dm.brand.palette;
+  const k = dm.modules.keywords;
+  const s = contentSlide(pres, dm, 'Keyword Strategy');
+  const header = ['Role', 'Type', 'Match', 'Example terms'].map(h => ({ text: h, options: { bold: true, color: p.WHITE, fill: { color: p.NAVY } } }));
+  const rows = k.clusters.slice(0, 8).map((c, i) => [c.role, c.type, c.matchType, (c.terms || []).slice(0, 3).join('; ')]
+    .map(cell => ({ text: cell, options: { color: p.DGRAY, fill: { color: i % 2 ? p.OFFWHT : p.WHITE } } })));
+  s.addTable([header, ...rows], { x: 0.4, y: 0.85, w: 9.2, colW: [2.2, 1.9, 1.0, 4.1], fontSize: 9, fontFace: 'Calibri', border: { pt: 0.5, color: p.MGRAY }, rowH: 0.36 });
+  const negs = (k.negatives || []).map(n => n.term).join(' · ');
+  s.addText('Negative keywords: ' + negs, { x: 0.4, y: 4.55, w: 9.2, h: 0.5, fontSize: 9, italic: true, color: p.ACCENT, fontFace: 'Calibri' });
+  return s;
+}
+
+function marketLandscapeSlide(pres, dm) {
+  const p = dm.brand.palette;
+  const m = dm.modules.insights.marketLandscape;
+  const s = contentSlide(pres, dm, 'Market Landscape: Supply & Demand');
+  const cards = [
+    { big: m.talentPool, label: 'Talent Pool' },
+    { big: m.activeSeekers, label: 'Active Seekers' },
+    { big: m.supplyDemand, label: 'Supply : Demand' },
+    { big: m.timeToFill, label: 'Avg Time-to-Fill' },
+  ];
+  cards.forEach((c, i) => statCard(pres, s, 0.45 + i * 2.32, 0.85, 2.15, 1.2, String(c.big), c.label, p, p.NAVY, p.WHITE));
+  const header = ['Metric', 'Value', 'Strategic Implication'].map(h => ({ text: h, options: { bold: true, color: p.WHITE, fill: { color: p.NAVY } } }));
+  const rows = (m.rows || []).slice(0, 5).map((r, i) => r.map(cell => ({ text: String(cell), options: { color: p.DGRAY, fill: { color: i % 2 ? p.OFFWHT : p.WHITE } } })));
+  s.addTable([header, ...rows], { x: 0.4, y: 2.25, w: 9.2, colW: [2.6, 2.0, 4.6], fontSize: 9.5, fontFace: 'Calibri', border: { pt: 0.5, color: p.MGRAY }, rowH: 0.42 });
+  if (m.sources && m.sources.length) {
+    s.addText('Sources: ' + m.sources.join(' · '), { x: 0.4, y: 4.9, w: 9.2, h: 0.3, fontSize: 7.5, color: '999999', fontFace: 'Calibri' });
+  }
+  return s;
+}
+
+function activePassiveSlide(pres, dm) {
+  const p = dm.brand.palette;
+  const a = dm.modules.insights.activePassive;
+  const s = contentSlide(pres, dm, 'Active vs Passive Audience');
+  s.addShape(pres.shapes.RECTANGLE, { x: 0.45, y: 1.0, w: 5.6, h: 3.0, fill: { color: p.NAVY }, line: { color: p.NAVY } });
+  s.addText(`${a.passivePct}%`, { x: 0.45, y: 1.2, w: 5.6, h: 1.4, fontSize: 60, bold: true, color: p.WHITE, align: 'center', fontFace: 'Calibri' });
+  s.addText('Passively employed', { x: 0.45, y: 2.7, w: 5.6, h: 0.4, fontSize: 14, color: p.SUBTLE, align: 'center', fontFace: 'Calibri' });
+  s.addShape(pres.shapes.RECTANGLE, { x: 6.2, y: 1.0, w: 3.35, h: 3.0, fill: { color: p.LGRAY }, line: { color: p.MGRAY } });
+  s.addText(`${a.activePct}%`, { x: 6.2, y: 1.3, w: 3.35, h: 1.0, fontSize: 40, bold: true, color: p.NAVY, align: 'center', fontFace: 'Calibri' });
+  s.addText('Actively looking', { x: 6.2, y: 2.4, w: 3.35, h: 0.4, fontSize: 12, color: p.DGRAY, align: 'center', fontFace: 'Calibri' });
+  if (a.note) s.addText(a.note, { x: 0.45, y: 4.2, w: 9.1, h: 0.5, fontSize: 11, italic: true, color: p.ACCENT, align: 'center', fontFace: 'Calibri' });
+  return s;
+}
+
+function competitiveSlide(pres, dm) {
+  const p = dm.brand.palette;
+  const c = dm.modules.insights.competitive;
+  const s = contentSlide(pres, dm, 'Competitive Landscape');
+  (c.competitors || []).slice(0, 6).forEach((comp, i) => {
+    const y = 0.9 + i * 0.62;
+    s.addShape(pres.shapes.RECTANGLE, { x: 0.45, y, w: 9.1, h: 0.52, fill: { color: i % 2 ? p.OFFWHT : p.WHITE }, line: { color: p.MGRAY, width: 0.5 } });
+    s.addText(comp.name, { x: 0.6, y: y + 0.05, w: 3.0, h: 0.42, fontSize: 11, bold: true, color: p.NAVY, fontFace: 'Calibri', valign: 'middle' });
+    s.addText(comp.note || '', { x: 3.7, y: y + 0.05, w: 5.7, h: 0.42, fontSize: 9.5, color: p.DGRAY, fontFace: 'Calibri', valign: 'middle' });
+  });
+  if (c.sources && c.sources.length) {
+    s.addText('Sources: ' + c.sources.join(' · '), { x: 0.45, y: 4.9, w: 9.1, h: 0.3, fontSize: 7.5, color: '999999', fontFace: 'Calibri' });
+  }
+  return s;
+}
+
 const MEASUREMENT_ROWS = [
   ['Brand / Awareness', 'Impressions · Reach · Video views', 'Meta (all formats)'],
   ['Engagement', 'Clicks / link clicks · CTR', 'All channels'],
@@ -177,19 +269,25 @@ async function renderDeck(deckModel, outPath) {
   pres.company = deckModel.brand.showJoveo ? 'Joveo' : deckModel.client;
   pres.title = `${deckModel.client} Media Plan`;
 
-  coverSlide(pres, deckModel);
-  opportunitySlide(pres, deckModel);
-  budgetOptionsSlide(pres, deckModel);
-  structureSlide(pres, deckModel);
-  allocationSlide(pres, deckModel);
-  performanceSlide(pres, deckModel);
-  tableSlide(pres, deckModel, 'Measurement Framework', MEASUREMENT_ROWS);
-  nextStepsSlide(pres, deckModel);
-  closeSlide(pres, deckModel);
+  const mods = deckModel.modules || {};
+  const ins = mods.insights || {};
+  const builders = [
+    coverSlide, opportunitySlide, budgetOptionsSlide, structureSlide,
+    allocationSlide, performanceSlide,
+    (pr, dm) => tableSlide(pr, dm, 'Measurement Framework', MEASUREMENT_ROWS),
+  ];
+  if (mods.targeting) builders.push(targetingSlide);
+  if (mods.keywords) builders.push(keywordSlide);
+  if (ins.marketLandscape) builders.push(marketLandscapeSlide);
+  if (ins.activePassive) builders.push(activePassiveSlide);
+  if (ins.competitive) builders.push(competitiveSlide);
+  builders.push(nextStepsSlide, closeSlide);
+
+  builders.forEach((b) => b(pres, deckModel));
 
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   await pres.writeFile({ fileName: outPath });
-  return { outPath, slideCount: 9 };
+  return { outPath, slideCount: builders.length };
 }
 
 module.exports = { renderDeck };
