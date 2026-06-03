@@ -9,3 +9,7 @@ node_modules/
 
 # External reference artifacts (kept locally, not source)
 *.skill
+
+# Renderer build artifacts
+social-media-media-planner/out/
+package-lock.json
