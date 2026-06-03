@@ -236,6 +236,9 @@ function activePassiveSlide(pres, dm) {
   s.addText(`${a.activePct}%`, { x: 6.2, y: 1.3, w: 3.35, h: 1.0, fontSize: 40, bold: true, color: p.NAVY, align: 'center', fontFace: 'Calibri' });
   s.addText('Actively looking', { x: 6.2, y: 2.4, w: 3.35, h: 0.4, fontSize: 12, color: p.DGRAY, align: 'center', fontFace: 'Calibri' });
   if (a.note) s.addText(a.note, { x: 0.45, y: 4.2, w: 9.1, h: 0.5, fontSize: 11, italic: true, color: p.ACCENT, align: 'center', fontFace: 'Calibri' });
+  if (a.sources && a.sources.length) {
+    s.addText('Sources: ' + a.sources.join(' · '), { x: 0.45, y: 4.9, w: 9.1, h: 0.3, fontSize: 7.5, color: '999999', fontFace: 'Calibri' });
+  }
   return s;
 }
 

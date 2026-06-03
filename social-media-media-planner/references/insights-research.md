@@ -255,3 +255,32 @@ Field names must match exactly — the renderer reads them without transformatio
 - `competitors` — up to 6 entries. Each entry renders as a row: `name` is shown bold
   (navy, left) and `note` in regular weight (grey, right).
 - `sources` — rendered as a small "Sources: …" line at the bottom of the slide.
+
+---
+
+## Visual QA (modules) — 2026-06-03: PASS (1 fix applied)
+
+Generated full all-modules decks (`qa-modules-joveo.pptx`, `qa-modules-wl.pptx`) via
+`generate()` with all five optional modules enabled. Both returned `slideCount: 14`,
+`warnings: []`.
+
+**XML coordinate analysis results (EMU; slide 9144000 × 5143500; footer at y=4892040):**
+
+| Check | Result |
+|---|---|
+| 14 slides total; slideN.xml count = 14 | PASS |
+| Module order: slides 8–12 = targeting, keywords, market-landscape, active-vs-passive, competitive; 13–14 = next-steps + close | PASS |
+| Keyword table (slide 9): y=777240 cy=914400 bottom=1691640 — above footer | PASS |
+| Market-landscape table (slide 10): y=2057400 cy=914400 bottom=2971800 — above footer | PASS |
+| Active-vs-Passive panels (slide 11): 90% panel right=5532120; 10% panel left=5669280; gap=137160 EMU — no overlap; both percentages render | PASS |
+| Competitive: 2 rows (Bupa, HC-One) ≤ 6; bottom row at y≈1866k — well above footer | PASS |
+| Sources line on market-landscape (slide 10) | PASS |
+| Sources line on active-vs-passive (slide 11) — **was missing; fixed in render.js** | FIXED → PASS |
+| Sources line on competitive (slide 12) | PASS |
+| No content shapes overflow right edge (9144000) or into footer | PASS |
+| White-label deck: grep for /joveo\|yoke/i across all extracted files → empty | PASS |
+| All 80 unit tests green after fix | PASS |
+
+**Fix applied:** `activePassiveSlide()` in `render/render.js` now renders a
+`Sources: …` footer line when `a.sources` is non-empty, matching the pattern used
+by `marketLandscapeSlide()` and `competitiveSlide()`.
