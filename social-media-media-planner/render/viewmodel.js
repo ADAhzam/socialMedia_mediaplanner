@@ -57,6 +57,11 @@ function buildDeckModel(plan, projected) {
     roleGroups: plan.roleGroups || [],
     locations: plan.locations || [],
     tiers,
+    modules: {
+      ...(plan.targeting ? { targeting: plan.targeting } : {}),
+      ...(plan.keywords ? { keywords: plan.keywords } : {}),
+      ...(plan.insights ? { insights: plan.insights } : {}),
+    },
   };
 }
 
