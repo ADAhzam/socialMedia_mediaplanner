@@ -1,0 +1,6 @@
+{
+  "name": "smmp-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["social-media-media-planner", "web"]
+}

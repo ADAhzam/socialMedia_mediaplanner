@@ -3,7 +3,7 @@
 const { projectPlan } = require('../lib');
 const { prepareForRender } = require('./gate');
 const { buildDeckModel } = require('./viewmodel');
-const { renderDeck } = require('./render');
+const { renderDeck, renderDeckBuffer } = require('./render');
 const { buildTargeting } = require('./modules/targeting');
 const { buildKeywords } = require('./modules/keywords');
 
@@ -26,4 +26,13 @@ async function generate(plan, outPath) {
   return { outPath, slideCount, warnings };
 }
 
-module.exports = { generate, withModules };
+async function generateBuffer(plan) {
+  const enriched = withModules(plan);
+  const projected = projectPlan(enriched);
+  const { warnings } = prepareForRender(enriched, projected); // throws on hard errors
+  const deckModel = buildDeckModel(enriched, projected);
+  const { buffer, slideCount } = await renderDeckBuffer(deckModel);
+  return { buffer, slideCount, warnings };
+}
+
+module.exports = { generate, generateBuffer, withModules };

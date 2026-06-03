@@ -265,7 +265,7 @@ const MEASUREMENT_ROWS = [
   ['Hire (Primary KPI)', 'Applications → Interview → Hire · CPH', 'ATS feedback'],
 ];
 
-async function renderDeck(deckModel, outPath) {
+function buildPres(deckModel) {
   const pres = new pptxgen();
   pres.layout = 'LAYOUT_16x9';
   pres.author = deckModel.brand.showJoveo ? 'Joveo' : deckModel.client;
@@ -285,12 +285,21 @@ async function renderDeck(deckModel, outPath) {
   if (ins.activePassive) builders.push(activePassiveSlide);
   if (ins.competitive) builders.push(competitiveSlide);
   builders.push(nextStepsSlide, closeSlide);
-
   builders.forEach((b) => b(pres, deckModel));
-
-  fs.mkdirSync(path.dirname(outPath), { recursive: true });
-  await pres.writeFile({ fileName: outPath });
-  return { outPath, slideCount: builders.length };
+  return { pres, slideCount: builders.length };
 }
 
-module.exports = { renderDeck };
+async function renderDeckBuffer(deckModel) {
+  const { pres, slideCount } = buildPres(deckModel);
+  const buffer = await pres.write({ outputType: 'nodebuffer' });
+  return { buffer, slideCount };
+}
+
+async function renderDeck(deckModel, outPath) {
+  const { pres, slideCount } = buildPres(deckModel);
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  await pres.writeFile({ fileName: outPath });
+  return { outPath, slideCount };
+}
+
+module.exports = { renderDeck, renderDeckBuffer };
