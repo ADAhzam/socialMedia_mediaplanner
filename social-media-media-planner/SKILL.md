@@ -4,7 +4,9 @@ description: >
   Builds a client-ready social media recruitment media plan deck (PPTX) from a natural-language
   brief. Triggers on phrases like: media plan, recruitment media plan, build me a deck,
   proposal for client, job-ad plan, employer branding plan, social media proposal.
-  Produces a Minimal 9-slide branded deck via the render/generate.js pipeline.
+  Produces a Minimal 9-slide branded deck via the render/generate.js pipeline. Three optional
+  modules — Audience Targeting, Keyword Strategy, and Market/Competitive Insights — add extra
+  slides (dynamic slide count) when toggled on.
 ---
 
 # Social Media Media Planner — Skill Orchestration Guide
@@ -18,13 +20,17 @@ retargeting) and **job-ad** (direct CPA-driven application volume). The deck is 
 the Node.js pipeline in `render/generate.js`, which chains engine projection, a hard-blocking
 validation gate, view-model normalisation, and pptxgenjs rendering into a single async call.
 
-Current output: **Minimal depth — 9 slides**. Intermediate (14 slides) and Maximalist (21 slides)
+Current output: **Minimal depth — 9 base slides**, growing dynamically when optional modules are
+enabled (see "Modules (optional)" below). Intermediate (14 slides) and Maximalist (21 slides)
 are documented follow-ons; they extend the same pipeline without changing this intake flow.
 
 Reference files:
 - `references/slide-blueprints.md` — per-slide layout for the 9-slide Minimal deck
 - `references/brand-modes.md` — brand-mode rules (joveo / cobranded / whitelabel)
 - `references/pptx-helpers.md` — render-helpers API, shadow rule, bar cap, footer rule, table guidance
+- `references/targeting-spec.md` — per-channel audience-targeting fields (Modules)
+- `references/keyword-spec.md` — keyword cluster types, standard negatives, conquest guidance (Modules)
+- `references/insights-research.md` — web-research flow, citation/confidence, AM-approval gate (Modules)
 
 ---
 
@@ -79,14 +85,153 @@ Campaign", "Volume Recruitment — Nursing", etc.
 
 ---
 
-## Step 3 — Confirm depth
+## Step 3 — Confirm depth and modules
 
-For v1 of every plan, use **Minimal depth — 9 slides**. This is the only depth currently
-implemented in `render/render.js`.
+For v1 of every plan, use **Minimal depth — 9 base slides**. Optional modules (targeting,
+keywords, insights) add slides dynamically; the rendered deck will be 9 + the number of
+enabled modules. See the "Modules (optional)" section below for the AM review workflow.
 
-Note to AM: Intermediate (14 slides) and Maximalist (21 slides) are in the follow-on roadmap
-and will be available as a toggle in a later release. For now, keep depth = Minimal and note
-any additional context the client needs in the Next Steps slide.
+Note to AM: Intermediate and Maximalist depths are in the follow-on roadmap and will be
+available as a toggle in a later release. For now, keep depth = Minimal and note any
+additional context the client needs in the Next Steps slide.
+
+---
+
+## Modules (optional)
+
+Three optional modules extend the base deck with additional slides inserted between the
+Measurement Framework slide and Next Steps. The modules are toggled per plan and must be
+AM-approved before the deck is sent to a client.
+
+### Toggling
+
+```json
+{
+  "modules": { "targeting": true, "keywords": true }
+}
+```
+
+Set `plan.modules.targeting = true` to add an Audience Targeting Strategy slide.
+Set `plan.modules.keywords = true` to add a Keyword Strategy slide.
+Insights slides are included per-key — when `plan.insights.marketLandscape`,
+`plan.insights.activePassive`, or `plan.insights.competitive` are present on the plan
+object, the corresponding slide is rendered automatically (no toggle needed).
+
+Each enabled module adds one slide; the resulting slide count is always `9 + number of
+enabled modules` (e.g. targeting + keywords + activePassive = 12 slides).
+
+---
+
+### Targeting module
+
+`generate()` calls `buildTargeting(plan)` (in `render/modules/targeting.js`) to produce a
+draft targeting spec from the brief. The draft is deterministic and pure — it uses
+`plan.roleGroups`, `plan.industry`, `plan.geoLabel`, `plan.geoExclusions`, and
+`plan.competitors` as inputs.
+
+**Skill workflow:**
+
+1. Run `generate()` with `plan.modules.targeting = true` (no `plan.targeting` yet). The
+   generator builds the draft automatically.
+2. Present the draft `plan.targeting` object to the AM. Highlight the Meta and Google
+   sections separately.
+3. Capture any edits the AM makes (audience breadth, excluded geos, competitor list,
+   retargeting windows, etc.).
+4. Write the edited object back to `plan.targeting` before the final `generate()` call.
+   A supplied `plan.targeting` object is used as-is — it bypasses the generator.
+
+See `references/targeting-spec.md` for the full field reference.
+
+---
+
+### Keywords module
+
+`generate()` calls `buildKeywords(plan)` (in `render/modules/keywords.js`) to produce a
+draft keyword plan. Inputs: `plan.client.name`, `plan.geoLabel`, `plan.roleGroups`.
+
+Three clusters are produced per role:
+
+| Type | Match type | Purpose |
+|---|---|---|
+| Function + Location | Phrase | Role title + geo variants |
+| Brand | Exact | Client brand + role |
+| Exploratory | Broad | Wider intent capture |
+
+A standard set of six negative keywords (internship, summer internship, part time,
+volunteer, freelance, work from home) is included automatically.
+
+**Skill workflow:**
+
+1. Run `generate()` with `plan.modules.keywords = true` (no `plan.keywords` yet).
+2. Present the draft clusters and negatives to the AM.
+3. Capture edits: add/remove clusters, edit example terms, extend the negative list.
+4. Write the edited object back to `plan.keywords` before the final `generate()`. A
+   supplied `plan.keywords` object is used as-is.
+
+See `references/keyword-spec.md` for the full field reference.
+
+---
+
+### Insights module
+
+Insights are **not** generated by code. The skill performs web research, the AM approves,
+and the approved data is set on `plan.insights` before `generate()` is called. The renderer
+validates that each insight carries a `sources` array; an empty `sources` array produces a
+soft warning from `generate()` — the file is still written but the AM is alerted. Insights
+without AM approval must not be sent to a client.
+
+**Skill workflow:**
+
+1. Confirm with the AM which insight types to include:
+   - **Market Landscape** — talent pool size, active-seeker count, supply:demand ratio,
+     average time-to-fill, and a table of metrics with strategic implications.
+   - **Active vs Passive** — the percentage split between actively-looking and passively-
+     employed candidates in this role/location.
+   - **Competitive Landscape** — named competitor employers and notes on their recruiting
+     activity.
+2. Perform web research for each requested insight. Record:
+   - The data values for the fields listed below.
+   - At least one citation URL per insight (`sources` array).
+   - A confidence note (e.g. "High — LinkedIn Talent Insights Q1 2026" or
+     "Medium — extrapolated from national figures").
+3. Present the draft insight objects to the AM alongside the confidence notes and sources.
+4. Capture AM edits or approval.
+5. Set `plan.insights = { ... }` with the approved objects. Each insight must have a
+   non-empty `sources` array before client send.
+
+**Exact insight object shapes** (must match these field names — derived from
+`render/render.js`):
+
+```
+plan.insights.marketLandscape = {
+  talentPool:    string,   // e.g. "12,000" — displayed as a stat card
+  activeSeekers: string,   // e.g. "1,200"  — stat card
+  supplyDemand:  string,   // e.g. "8:1"    — stat card
+  timeToFill:    string,   // e.g. "45 days" — stat card
+  rows: [                  // up to 5 rows; each row is [metric, value, implication]
+    [string, string, string],
+    ...
+  ],
+  sources: [string, ...]   // citation URLs; empty array → soft warning
+}
+
+plan.insights.activePassive = {
+  passivePct: number,      // percentage passively employed, e.g. 90
+  activePct:  number,      // percentage actively looking, e.g. 10
+  note:       string,      // italic callout rendered below the chart, e.g. "Built for the 90%"
+  sources:    [string, ...]
+}
+
+plan.insights.competitive = {
+  competitors: [           // up to 6 rendered
+    { name: string, note: string }   // name: competitor employer; note: recruiting activity
+  ],
+  sources: [string, ...]
+}
+```
+
+See `references/insights-research.md` for the full research flow, confidence tagging, and
+the AM-approval gate.
 
 ---
 
@@ -338,6 +483,77 @@ All fields without `?` are required.
       }
     }
   ]
+
+  // Optional modules — add extra slides between Measurement and Next Steps
+  modules?: {
+    targeting?: boolean              // true → build + render Audience Targeting slide
+    keywords?:  boolean              // true → build + render Keyword Strategy slide
+    // insights are included per-key via plan.insights (no boolean toggle needed)
+  }
+
+  // Targeting spec — auto-built by generate() when modules.targeting is true and
+  // plan.targeting is absent; a supplied object is used as-is (post-AM-edit).
+  targeting?: {
+    meta: {
+      location:        string        // display geography, e.g. "25-mile radius, Manchester"
+      specialAdCategory: boolean     // always true (Recruitment)
+      locked:          string        // age/gender lock description, e.g. "Age 18+, all genders (...)"
+      interestFunction: string[]     // role-title interest keywords
+      interestIndustry: string[]     // industry-level interests from lib INDUSTRY_INTERESTS map
+      careerIntent:    string[]      // e.g. ["Job hunting", "Career development", "Employment"]
+      retargeting:     string[]      // retargeting audience descriptions
+      note:            string        // Special Ad Category advisory shown in italic on the slide
+    }
+    google: {
+      inMarketAudiences: string[]    // Google in-market audience names
+      customIntentUrls:  string[]    // job-board URLs for custom-intent, e.g. ["indeed.com", ...]
+      geo:               string      // display geography (same as plan.geoLabel)
+      negativeGeo:       string[]    // excluded geographies (from plan.geoExclusions)
+      competitorConquest: string     // conquest note, e.g. "Bid on competitor brand terms: ..."
+    }
+  }
+
+  // Keyword clusters — auto-built by generate() when modules.keywords is true and
+  // plan.keywords is absent; a supplied object is used as-is.
+  keywords?: {
+    clusters: [
+      {
+        role:      string            // role name from plan.roleGroups[].name
+        type:      'Function + Location' | 'Brand' | 'Exploratory'
+        matchType: 'Phrase' | 'Exact' | 'Broad'
+        terms:     string[]          // example search terms for this cluster
+      }
+    ]
+    negatives: [
+      {
+        term:   string               // negative keyword
+        reason: string               // rationale shown to the AM
+      }
+    ]
+  }
+
+  // Insights — researched by the skill, AM-approved; never fabricated by code.
+  // Each key present triggers the corresponding slide. All keys are optional.
+  insights?: {
+    marketLandscape?: {
+      talentPool:    string          // e.g. "12,000" — displayed as a stat card
+      activeSeekers: string          // e.g. "1,200"
+      supplyDemand:  string          // e.g. "8:1"
+      timeToFill:    string          // e.g. "45 days"
+      rows:          [string, string, string][]  // [metric, value, implication], up to 5
+      sources:       string[]        // citation URLs; empty → soft warning
+    }
+    activePassive?: {
+      passivePct: number             // % passively employed, e.g. 90
+      activePct:  number             // % actively looking, e.g. 10
+      note:       string             // callout text, e.g. "Built for the 90%"
+      sources:    string[]
+    }
+    competitive?: {
+      competitors: { name: string, note: string }[]  // up to 6; name = employer, note = activity
+      sources:     string[]
+    }
+  }
 }
 ```
 
